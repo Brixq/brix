@@ -1,0 +1,79 @@
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Carbon-UI/Orion/main/source"))()
+
+local Window = OrionLib:MakeWindow({
+    Name = "Brix Hub",
+    HidePremium = false,
+    IntroEnabled = true
+})
+
+local GeneralTab = Window:MakeTab({
+    Name = "General",
+    PremiumOnly = false
+})
+
+GeneralTab:AddButton({
+    Name = "Enable Shiftlock",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local camera = game.Workspace.CurrentCamera
+        local humanoid = player.Character:WaitForChild("Humanoid")
+        local mouse = player:GetMouse()
+        
+        local shiftlockIcon = Instance.new("ImageButton")
+        shiftlockIcon.Size = UDim2.new(0, 50, 0, 50)
+        shiftlockIcon.Position = UDim2.new(0.5, -25, 0.8, 0)
+        shiftlockIcon.Image = "rbxassetid://6320544544"
+        shiftlockIcon.BackgroundTransparency = 1
+        shiftlockIcon.Parent = player.PlayerGui
+
+        local crosshair = Instance.new("ImageLabel")
+        crosshair.Size = UDim2.new(0, 20, 0, 20)
+        crosshair.Position = UDim2.new(0.5, -10, 0.5, -10)
+        crosshair.Image = "rbxassetid://6031075938"
+        crosshair.BackgroundTransparency = 1
+        crosshair.Parent = player.PlayerGui
+        crosshair.Visible = false
+
+        local shiftlockEnabled = false
+        shiftlockIcon.MouseButton1Click:Connect(function()
+            shiftlockEnabled = not shiftlockEnabled
+            humanoid.CameraOffset = shiftlockEnabled and Vector3.new(0, 0, 5) or Vector3.new(0, 0, 0)
+            camera.FieldOfView = shiftlockEnabled and 70 or 60
+            crosshair.Visible = shiftlockEnabled
+            
+            if shiftlockEnabled then
+                camera.CameraType = Enum.CameraType.Scriptable
+                camera.CFrame = CFrame.new(player.Character.HumanoidRootPart.Position) * CFrame.new(0, 2, -10)
+                camera.Focus = camera.CFrame.Position
+                mouse.Icon = "rbxassetid://6031075938"
+            else
+                camera.CameraType = Enum.CameraType.Custom
+                mouse.Icon = ""
+            end
+        end)
+
+        local dragging = false
+        local dragInput, dragStart, startPos
+        shiftlockIcon.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                dragStart = input.Position
+                startPos = shiftlockIcon.Position
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                    end
+                end)
+            end
+        end)
+
+        shiftlockIcon.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local delta = input.Position - dragStart
+                shiftlockIcon.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            end
+        end)
+    end
+})
+
+GeneralTab
